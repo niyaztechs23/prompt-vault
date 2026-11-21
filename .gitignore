@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+*.local
+prompt-vault.zip
+.DS_Store
+coverage
+/plan.md
+/TODO.md
+/src/pages/CommunityPreview.tsx
