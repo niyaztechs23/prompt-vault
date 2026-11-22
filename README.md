@@ -62,18 +62,22 @@ cp .env.example .env
 ## 3 · Supabase setup (cloud sync + auth)
 
 1. Create a project at supabase.com.
-2. Apply the ordered migrations `supabase/migrations/0001_init.sql` and
-   `supabase/migrations/0002_community.sql` to a fresh project. The first is the personal
-   vault schema; the second adds private collaboration. Review both migrations and confirm
-   the target project before applying them to an existing database. With the Supabase CLI:
+2. Apply the ordered migrations `supabase/migrations/0001_init.sql`,
+   `supabase/migrations/0002_community.sql`, and
+   `supabase/migrations/0003_harden_trigger_helpers.sql` to a fresh project. They create
+   the personal vault, private collaboration, and hardened app-owned trigger helpers. Review
+   all migrations and confirm the target project before applying them to an existing database.
+   With the Supabase CLI:
    ```bash
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REF
    npx supabase db push
    ```
 3. Copy Project URL + anon public key (Settings → API) into .env.
-4. Auth → Providers → Email: enable. Add http://localhost:5173/auth and your production /auth URL
-   to Auth → URL Configuration → Redirect URLs (password-reset links land there).
+4. Auth → Providers → Email: enable and keep email confirmation on. Set the production Site URL
+   and add `http://localhost:5173/auth` (for local development) and your production `/auth` URL
+   to Auth → URL Configuration → Redirect URLs. For public sign-ups, configure custom SMTP:
+   Supabase's built-in sender is for testing and only sends to project team addresses.
 5. Restart npm run dev and sign up. Profile + settings rows are auto-provisioned by a DB trigger.
    Collaboration uses `/friends`, `/teams`, and `/shared`; migration 0002 adds the message tables
    to the `supabase_realtime` publication. Never expose a service-role key in browser code. Only
