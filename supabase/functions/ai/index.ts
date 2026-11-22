@@ -1,6 +1,7 @@
-// PROMPT VAULT · secure AI gateway (Supabase Edge Function, Deno)
+// PROMPT VAULT · server-side AI gateway (Supabase Edge Function, Deno)
+// Defaults: Groq OpenAI-compatible API + openai/gpt-oss-20b. API key is a Supabase secret.
 // Secrets: AI_API_KEY (required), AI_BASE_URL, AI_MODEL, AI_RATE_LIMIT_PER_HOUR, ALLOWED_ORIGIN
-// Deploy: supabase functions deploy ai   ·   Secrets: supabase secrets set AI_API_KEY=sk-...
+// Deploy: supabase functions deploy ai   ·   Configure AI_API_KEY in Supabase Edge Function secrets.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const CORS = {
@@ -104,8 +105,8 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body.', code: 'bad_request' }, 400); }
 
   const apiKey = Deno.env.get('AI_API_KEY');
-  const model = Deno.env.get('AI_MODEL') ?? 'gpt-4o-mini';
-  const baseUrl = (Deno.env.get('AI_BASE_URL') ?? 'https://api.openai.com/v1').replace(/\/$/, '');
+  const model = Deno.env.get('AI_MODEL') ?? 'openai/gpt-oss-20b';
+  const baseUrl = (Deno.env.get('AI_BASE_URL') ?? 'https://api.groq.com/openai/v1').replace(/\/$/, '');
 
   if (body.mode === 'status') return json({ configured: !!apiKey, model });
   if (!apiKey) return json({ error: 'The AI provider is not configured on the server. The owner must set the AI_API_KEY secret.', code: 'not_configured' }, 501);
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
     providerRes = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST', signal: controller.signal,
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, temperature, max_tokens: maxTokens }),
+      body: JSON.stringify({ model, messages, temperature, max_tokens: maxTokens, response_format: { type: 'json_object' } }),
     });
   } catch {
     clearTimeout(timeout);

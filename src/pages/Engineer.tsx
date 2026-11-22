@@ -39,7 +39,7 @@ function SetupCard({ status, recheck }: { status: AIStatus; recheck: () => void 
           <ol className="text-xs text-muted mt-3 space-y-1 list-decimal pl-4">
             <li>Create a Supabase project and apply <code className="text-accent">supabase/migrations/0001_init.sql</code>.</li>
             <li>Deploy the function: <code className="text-accent">supabase functions deploy ai</code></li>
-            <li>Set the secret: <code className="text-accent">supabase secrets set AI_API_KEY=your-key</code> (OpenAI or any compatible provider).</li>
+            <li>Set <code className="text-accent">AI_API_KEY</code> in Supabase Dashboard → Edge Functions → Secrets. Never put it in Vercel or a <code className="text-accent">VITE_</code> variable. Groq is the default provider.</li>
             <li>Full instructions in the project README → “AI provider configuration”.</li>
           </ol>
           <div className="flex gap-2 mt-3">
@@ -184,6 +184,11 @@ export function Engineer() {
           : <Badge><Loader2 size={11} className="animate-spin" />Checking provider…</Badge>}
       </div>
       {status && status.state !== 'ready' && <SetupCard status={status} recheck={recheck} />}
+
+      <div className="card p-3 flex items-start gap-2 border-sky/20 bg-sky/5 text-xs text-muted leading-relaxed">
+        <Info size={14} className="text-sky shrink-0 mt-0.5" />
+        <p>Saving prompts does not send them anywhere. When you run an AI action, the submitted prompt and context are sent to the configured provider (Groq by default). Groq says inference data is not retained by default, but may be logged for reliability or abuse investigations for up to 30 days; its <a className="text-accent underline" href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer">data controls</a> include Zero Data Retention. Avoid sensitive or confidential content unless you are comfortable with the provider's current terms.</p>
+      </div>
 
       <div className="flex gap-1.5 flex-wrap">
         {MODES.map(m => (

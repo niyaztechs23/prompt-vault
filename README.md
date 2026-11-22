@@ -85,16 +85,34 @@ cp .env.example .env
 
 ## 4 · AI provider configuration
 
+The AI gateway defaults to Groq's OpenAI-compatible API with `openai/gpt-oss-20b`. Groq's published
+Free Plan limits for that model list 30 requests/minute, 1,000 requests/day, 8,000 tokens/minute,
+and 200,000 tokens/day; actual limits can vary by account. The free quota is shared by every Prompt
+Vault user using this provider key. Groq also lists paid token rates for the model, so keep the
+provider account on its Free tier if you do not want usage-based charges; do not upgrade or add a
+payment method without reviewing the billing terms.
+
+Create a Groq API key at [console.groq.com/keys](https://console.groq.com/keys), then store it only
+in **Supabase Dashboard → Edge Functions → Secrets** as `AI_API_KEY`, or use the Supabase CLI:
+
 ```bash
 npx supabase functions deploy ai
 npx supabase functions deploy delete-account
-npx supabase secrets set AI_API_KEY=YOUR_KEY
-# optional:
-npx supabase secrets set AI_MODEL=gpt-4o-mini AI_BASE_URL=https://api.openai.com/v1 AI_RATE_LIMIT_PER_HOUR=30 ALLOWED_ORIGIN=https://your-app.com
+npx supabase secrets set AI_API_KEY=YOUR_GROQ_KEY
+# optional overrides:
+npx supabase secrets set AI_BASE_URL=https://api.groq.com/openai/v1 AI_MODEL=openai/gpt-oss-20b AI_RATE_LIMIT_PER_HOUR=30 ALLOWED_ORIGIN=https://your-app.com
 ```
 
-Any OpenAI-compatible provider works (OpenAI, Groq, OpenRouter, Together…) — set AI_BASE_URL + AI_MODEL.
-Local dev: `npx supabase functions serve ai --env-file .env`
+Never put the provider key in Vercel, a `VITE_` variable, or source control. The gateway requires an
+authenticated Supabase user and enforces an application limit of 30 requests/hour per user. You can
+override the model/base URL with another OpenAI-compatible provider, but review that provider's
+data and billing policies first. Local dev: `npx supabase functions serve ai --env-file .env`.
+
+**Prompt privacy:** Saving prompts does not send them to an AI provider. When a user runs an AI
+action, the submitted prompt and request context are sent to the configured provider. Groq says
+inference data is not retained by default, but it may be logged for reliability or abuse investigations
+for up to 30 days; its account console offers Zero Data Retention controls. Avoid sending sensitive
+or confidential material unless the provider's current data settings and terms are acceptable to you.
 
 Behavior: unconfigured → setup card · signed out → sign-in prompt · 429 → limit message · provider down → useful error.
 
