@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Settings as SettingsIcon, Monitor, Moon, Sun, Type, FolderCog, User, Database, Wand2, AlertTriangle, RefreshCw, CheckCircle2, LogOut, KeyRound } from 'lucide-react';
+import { Settings as SettingsIcon, Monitor, Moon, Sun, Type, FolderCog, User, Database, Wand2, AlertTriangle, RefreshCw, CheckCircle2, LogOut, KeyRound, Mail } from 'lucide-react';
 import type { Settings as SettingsT, SortKey } from '../types';
 import { SORT_OPTIONS } from '../types';
 import { useVault } from '../store/vault';
@@ -26,7 +26,8 @@ export function Settings() {
   const exportLib = useExportLibrary();
   const [aiStatus, setAiStatus] = useState<AIStatus | null>(null);
   const [name, setName] = useState(auth.displayName);
-  const [pw, setPw] = useState(''); const [pw2, setPw2] = useState('');
+  const [resetEmail, setResetEmail] = useState(auth.user?.email ?? '');
+  const [resetSent, setResetSent] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const s = vault.settings;
   const set = (patch: Partial<SettingsT>) => vault.updateSettings(patch);
@@ -41,11 +42,11 @@ export function Settings() {
     try { await auth.updateDisplayName(name.trim() || 'User'); toast.success('Profile updated.'); }
     catch (e) { toast.error(errMsg(e)); } finally { setBusy(null); }
   };
-  const savePassword = async () => {
-    if (pw.length < 8) { toast.error('Password must be at least 8 characters.'); return; }
-    if (pw !== pw2) { toast.error('Passwords do not match.'); return; }
-    setBusy('pw');
-    try { await auth.updatePassword(pw); setPw(''); setPw2(''); toast.success('Password updated.'); }
+  const requestPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) { toast.error('Enter a valid email address.'); return; }
+    setBusy('reset');
+    try { await auth.sendReset(resetEmail.trim()); setResetSent(true); }
     catch (e) { toast.error(errMsg(e)); } finally { setBusy(null); }
   };
   const deleteAccount = async () => {
@@ -141,13 +142,15 @@ export function Settings() {
               <Field label="Display name"><Input value={name} onChange={e => setName(e.target.value)} /></Field>
               <Button onClick={() => void saveName()} loading={busy === 'name'}>Save</Button>
             </div>
-            <div className="grid sm:grid-cols-2 gap-3 max-w-md">
-              <Field label="New password"><Input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="Min 8 characters" autoComplete="new-password" /></Field>
-              <Field label="Confirm password"><Input type="password" value={pw2} onChange={e => setPw2(e.target.value)} autoComplete="new-password" /></Field>
-            </div>
+            <form onSubmit={e => void requestPasswordReset(e)} className="max-w-md space-y-3">
+              <p className="text-xs text-muted">To change your password, request a secure link by email. Open the link from your inbox, then choose a new password on the reset page.</p>
+              <Field label="Email for password authorization"><div className="relative"><Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" type="email" value={resetEmail} onChange={e => { setResetEmail(e.target.value); setResetSent(false); }} autoComplete="email" required /></div></Field>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" type="submit" loading={busy === 'reset'}><KeyRound size={13} />Email password reset link</Button>
+              </div>
+              {resetSent && <p role="status" className="text-xs text-mint">If an account matches that email, a password reset link is on its way. Check your inbox.</p>}
+            </form>
             <div className="flex gap-2 flex-wrap">
-              <Button size="sm" onClick={() => void savePassword()} loading={busy === 'pw'} disabled={!pw}><KeyRound size={13} />Update password</Button>
-              <Button size="sm" variant="subtle" onClick={async () => { try { await auth.sendReset(auth.user!.email!); toast.success('Password reset email sent.'); } catch (e) { toast.error(errMsg(e)); } }}>Send reset email</Button>
               <Button size="sm" variant="subtle" onClick={async () => { await auth.signOut(); toast.info('Signed out.'); }}><LogOut size={13} />Sign out</Button>
             </div>
           </div>

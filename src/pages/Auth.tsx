@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Vault, Mail, Lock, User, ArrowLeft, CheckCircle2, AlertTriangle, Sparkles, History, Cloud, ShieldCheck } from 'lucide-react';
+import { Vault, Mail, Lock, User, ArrowLeft, CheckCircle2, AlertTriangle, Sparkles, History, Cloud, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../store/auth';
 import { useToast } from '../store/toast';
 import { Button, Field, Input, cx } from './_shared';
@@ -15,6 +15,7 @@ export function Auth() {
   const [view, setView] = useState<View>('signin');
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [name, setName] = useState(''); const [confirmPw, setConfirmPw] = useState('');
+  const [showPassword, setShowPassword] = useState(false); const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -106,8 +107,8 @@ export function Auth() {
             <form className="space-y-4" onSubmit={e => { e.preventDefault(); void submit(); }}>
               {view === 'signup' && <Field label="Display name"><div className="relative"><User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" value={name} onChange={e => setName(e.target.value)} placeholder="Ada Lovelace" autoComplete="name" /></div></Field>}
               {view !== 'reset' && <Field label="Email"><div className="relative"><Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" /></div></Field>}
-              {view !== 'forgot' && <Field label={view === 'reset' ? 'New password' : 'Password'}><div className="relative"><Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 characters" autoComplete={view === 'signin' ? 'current-password' : 'new-password'} /></div></Field>}
-              {(view === 'signup' || view === 'reset') && <Field label="Confirm password"><div className="relative"><Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} autoComplete="new-password" /></div></Field>}
+              {view !== 'forgot' && <Field label={view === 'reset' ? 'New password' : 'Password'}><div className="relative"><Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8 pr-11" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 characters" autoComplete={view === 'signin' ? 'current-password' : 'new-password'} /><button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"><span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>{showPassword ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}</button></div></Field>}
+              {(view === 'signup' || view === 'reset') && <Field label="Confirm password"><div className="relative"><Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8 pr-11" type={showConfirmPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} autoComplete="new-password" /><button type="button" onClick={() => setShowConfirmPw(v => !v)} aria-label={showConfirmPw ? 'Hide confirm password' : 'Show confirm password'} aria-pressed={showConfirmPw} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-md text-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"><span className="sr-only">{showConfirmPw ? 'Hide confirm password' : 'Show confirm password'}</span>{showConfirmPw ? <EyeOff size={15} aria-hidden="true" /> : <Eye size={15} aria-hidden="true" />}</button></div></Field>}
               <Button variant="primary" className="w-full" loading={busy} type="submit">
                 {view === 'signin' ? 'Sign in' : view === 'signup' ? 'Create account' : view === 'forgot' ? 'Send reset link' : 'Update password'}
               </Button>
