@@ -42,6 +42,12 @@ export function Auth() {
     } catch (e) { setError(errMsg(e)); } finally { setBusy(false); }
   };
 
+  const continueWithGoogle = async () => {
+    setError(''); setNotice(''); setBusy(true);
+    try { await auth.signInWithGoogle(); }
+    catch (e) { setError(errMsg(e)); setBusy(false); }
+  };
+
   return (
     <div className="min-h-screen bg-bg text-ink flex">
       <div className="hidden lg:flex w-[44%] bg-surface border-r border-line flex-col justify-between p-10 relative overflow-hidden">
@@ -104,6 +110,20 @@ export function Auth() {
             </p>
             {error && <div className="card border-rose/40 bg-rose/10 p-3 text-sm text-rose mb-4 flex gap-2"><AlertTriangle size={15} className="shrink-0 mt-0.5" />{error}</div>}
             {notice && <div className="card border-mint/40 bg-mint/10 p-3 text-sm text-ink mb-4 flex gap-2"><CheckCircle2 size={15} className="text-mint shrink-0 mt-0.5" />{notice}</div>}
+            {(view === 'signin' || view === 'signup') && <>
+              <button type="button" onClick={() => void continueWithGoogle()} disabled={busy}
+                className="w-full flex items-center justify-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink transition hover:border-accent/50 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Continue with Google">
+                <svg aria-hidden="true" viewBox="0 0 48 48" className="h-[18px] w-[18px]">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.47-4.76 7.16l7.73 6C44.42 37.93 46.98 31.8 46.98 24.55Z" />
+                  <path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a23.95 23.95 0 0 0 0 21.56l7.98-6.19Z" />
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.82l-7.73-6c-2.14 1.44-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
+                </svg>
+                Continue with Google
+              </button>
+              <div className="flex items-center gap-3 my-5 text-[11px] text-muted" aria-hidden="true"><span className="h-px flex-1 bg-line" /><span>or use email</span><span className="h-px flex-1 bg-line" /></div>
+            </>}
             <form className="space-y-4" onSubmit={e => { e.preventDefault(); void submit(); }}>
               {view === 'signup' && <Field label="Display name"><div className="relative"><User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" value={name} onChange={e => setName(e.target.value)} placeholder="Ada Lovelace" autoComplete="name" /></div></Field>}
               {view !== 'reset' && <Field label="Email"><div className="relative"><Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" /><Input className="pl-8" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" /></div></Field>}

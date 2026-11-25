@@ -76,7 +76,11 @@ cp .env.example .env
 3. Copy Project URL + anon public key (Settings → API) into .env.
 4. Auth → Providers → Email: enable and keep email confirmation on. Set the production Site URL
    and add `http://localhost:5173/auth` (for local development) and your production `/auth` URL
-   to Auth → URL Configuration → Redirect URLs. For public sign-ups, configure custom SMTP:
+   to Auth → URL Configuration → Redirect URLs. For Google sign-in, enable Google under
+   Auth → Providers → Google, enter a Google OAuth Web client ID and secret directly in Supabase,
+   and add the displayed Supabase callback URL to Google Cloud Console → OAuth client →
+   Authorized redirect URIs. Keep only the basic identity scopes unless more are required.
+   For public sign-ups, configure custom SMTP:
    Supabase's built-in sender is for testing and only sends to project team addresses.
 5. Restart npm run dev and sign up. Profile + settings rows are auto-provisioned by a DB trigger.
    Collaboration uses `/friends`, `/teams`, and `/shared`; migration 0002 adds the message tables
@@ -177,5 +181,6 @@ Add your production URL to Supabase Auth Redirect URLs; set ALLOWED_ORIGIN on th
 
 - Collaboration realtime is limited to direct/team messages; no typing indicators, presence, or delivery receipts.
 - Chat history loads in bounded pages of up to 100 messages; shared prompt lists are capped at 100 rows per request.
-- OAuth not wired (email/password complete); can be added via Supabase later.
+- Google OAuth and email/password sign-in are supported; Google OAuth requires the provider credentials,
+  Supabase redirect allowlist, and Google Cloud Console callback URI to remain correctly configured.
 - AI quality/limits depend on your provider; analysis is labeled subjective.

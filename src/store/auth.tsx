@@ -7,6 +7,7 @@ interface AuthApi {
   displayName: string;
   signUp: (email: string, password: string, name: string) => Promise<{ needsVerify: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   sendReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
@@ -54,6 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async signIn(email, password) {
       if (!supabase) throw new Error('Cloud is not configured.');
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(friendly(error.message));
+    },
+    async signInWithGoogle() {
+      if (!supabase) throw new Error('Cloud is not configured.');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth` },
+      });
       if (error) throw new Error(friendly(error.message));
     },
     async signOut() { if (supabase) { const { error } = await supabase.auth.signOut(); if (error) throw new Error(error.message); } },
