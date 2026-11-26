@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Wand2, Sparkles, PenLine, Stethoscope, Layers, MessageSquare, Copy, Save, RefreshCw,
   BookOpen, Send, RotateCcw, GitCompare, Tag, FolderOpen, AlertTriangle, CheckCircle2, Info, Loader2, ChevronDown, ChevronUp,
@@ -112,8 +112,10 @@ function PromptBlock({ text, max = 260 }: { text: string; max?: number }) {
 export function Engineer() {
   const ui = useUI();
   const toast = useToast();
+  const [searchParams] = useSearchParams();
+  const requestedMode = searchParams.get('mode');
   const [status, setStatus] = useState<AIStatus | null>(null);
-  const [mode, setMode] = useState<Mode>('improve');
+  const [mode, setMode] = useState<Mode>(() => MODES.some(m => m.id === requestedMode) ? requestedMode as Mode : 'improve');
   const [source, setSource] = useState('');
   const [goal, setGoal] = useState('');
   const [style, setStyle] = useState<string>(REWRITE_STYLES[0]);
@@ -190,23 +192,30 @@ export function Engineer() {
         <p>Saving prompts does not send them anywhere. When you run an AI action, the submitted prompt and context are sent to the configured provider (Groq by default). Groq says inference data is not retained by default, but may be logged for reliability or abuse investigations for up to 30 days; its <a className="text-accent underline" href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer">data controls</a> include Zero Data Retention. Avoid sensitive or confidential content unless you are comfortable with the provider's current terms.</p>
       </div>
 
-      <div className="flex gap-1.5 flex-wrap">
-        {MODES.map(m => (
-          <button key={m.id} onClick={() => { setMode(m.id); setError(null); }}
-            className={cx('chip cursor-pointer px-3 py-1.5 text-xs transition', mode === m.id ? 'bg-accent-soft text-accent border-accent/50' : 'hover:border-accent/30')}>
-            <m.icon size={13} />{m.label}
-          </button>
-        ))}
-      </div>
+      <section aria-label="Choose an engineering mode" className="space-y-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Choose a mode</h2>
+          <p className="hidden sm:block text-[11px] text-muted">Select a task to configure its inputs</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2" role="group" aria-label="Prompt engineering modes">
+          {MODES.map(m => (
+            <button key={m.id} type="button" aria-pressed={mode === m.id} onClick={() => { setMode(m.id); setError(null); }}
+              className={cx('group min-h-[76px] text-left rounded-xl border px-3 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg', mode === m.id ? 'bg-accent-soft border-accent/50 text-accent shadow-sm' : 'card hover:border-accent/30 hover:bg-surface2/50')}>
+              <span className="flex items-center gap-2 text-xs font-semibold"><m.icon size={14} aria-hidden="true" />{m.label}</span>
+              <span className="mt-1.5 block text-[10px] leading-snug text-muted">{m.desc}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {error && <div className="card border-rose/40 bg-rose/10 p-3.5 flex items-start gap-2 text-sm animate-rise"><AlertTriangle size={15} className="text-rose shrink-0 mt-0.5" /><span className="text-ink">{error}</span></div>}
 
       {mode === 'chat' ? (
-        <div className="card p-4 space-y-3">
+        <div className="card p-4 sm:p-5 space-y-4">
           {!chatMsgs.length && (<>
             <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-ink">Start a refinement session</h3>
               <Button size="sm" variant="subtle" onClick={() => loadFromLibrary('chat')}><BookOpen size={13} />Load from library</Button></div>
-            <Textarea rows={6} className="font-mono text-[12.5px]" placeholder="Paste the prompt you want to refine…" value={chatPrompt} onChange={e => setChatPrompt(e.target.value)} />
+            <label className="block space-y-1.5"><span className="label">Prompt to refine</span><Textarea aria-label="Prompt to refine" rows={6} className="font-mono text-[12.5px]" placeholder="Paste the prompt you want to refine…" value={chatPrompt} onChange={e => setChatPrompt(e.target.value)} /></label>
           </>)}
           {chatMsgs.length > 0 && (<>
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -226,27 +235,27 @@ export function Engineer() {
               ))}
             </div>
           </>)}
-          <div className="flex gap-2">
-            <Textarea rows={2} placeholder={chatMsgs.length ? 'e.g. Make it shorter but preserve the important instructions…' : 'First instruction, e.g. “Make this prompt more professional”'}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Textarea aria-label="Refinement instruction" className="min-w-0 flex-1" rows={2} placeholder={chatMsgs.length ? 'e.g. Make it shorter but preserve the important instructions…' : 'First instruction, e.g. “Make this prompt more professional”'}
               value={chatInput} onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && canRun) void run(); }} />
-            <Button variant="primary" className="self-end" disabled={!canRun} loading={busy} onClick={() => void run()}><Send size={14} />Send</Button>
+            <Button variant="primary" className="self-end w-full sm:w-auto" disabled={!canRun} loading={busy} onClick={() => void run()}><Send size={14} />Send</Button>
           </div>
           <p className="text-[10px] text-muted">Context is kept within this session. Ctrl/Cmd+Enter to send.</p>
         </div>
       ) : (
-        <div className="grid xl:grid-cols-2 gap-4 items-start">
-          <div className="card p-4 space-y-3">
+        <div className="grid xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] gap-4 items-start">
+          <div className="card p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5"><cfg.icon size={15} className="text-accent" />{cfg.label}</h3>
               {mode !== 'generate' && <Button size="sm" variant="subtle" onClick={() => loadFromLibrary('source')}><BookOpen size={13} />Load from library</Button>}
             </div>
             <p className="text-xs text-muted">{cfg.desc}</p>
             {mode === 'generate' ? (
-              <Textarea rows={6} placeholder={'Describe what you want to achieve…\n\ne.g. "I want an AI to teach me C programming from beginner level."'}
-                value={goal} onChange={e => setGoal(e.target.value)} />
+              <label className="block space-y-1.5"><span className="label">What should the prompt accomplish?</span><Textarea aria-label="Goal for the generated prompt" rows={6} placeholder={'Describe what you want to achieve…\n\ne.g. "I want an AI to teach me C programming from beginner level."'}
+                value={goal} onChange={e => setGoal(e.target.value)} /></label>
             ) : (
-              <Textarea rows={9} className="font-mono text-[12.5px]" placeholder="Paste or type the prompt to work on…" value={source} onChange={e => setSource(e.target.value)} />
+              <label className="block space-y-1.5"><span className="label">Prompt to {cfg.label.toLowerCase()}</span><Textarea aria-label={`Prompt to ${cfg.label.toLowerCase()}`} rows={9} className="font-mono text-[12.5px]" placeholder="Paste or type the prompt to work on…" value={source} onChange={e => setSource(e.target.value)} /></label>
             )}
             <div className="flex items-center gap-3 flex-wrap">
               {mode === 'rewrite' && <div className="flex items-center gap-2"><span className="text-xs text-muted">Style</span>
@@ -259,7 +268,7 @@ export function Engineer() {
                   <span className="px-2 text-sm font-semibold text-ink tabular-nums">{count}</span>
                   <button className="px-2.5 py-1 text-sm text-muted hover:text-ink" onClick={() => setCount(c => Math.min(5, c + 1))} aria-label="More variations">+</button>
                 </div></div>}
-              <Button variant="primary" className="ml-auto" disabled={!canRun} loading={busy} onClick={() => void run()}>
+              <Button variant="primary" className="w-full sm:w-auto sm:ml-auto" disabled={!canRun} loading={busy} onClick={() => void run()}>
                 <Sparkles size={14} />{busy ? 'Working…' : `Run ${cfg.label}`}
               </Button>
             </div>

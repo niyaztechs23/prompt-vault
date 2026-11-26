@@ -19,12 +19,12 @@ export function BulkBar({ ids, total, clear, selectAll }: { ids: string[]; total
     done(`Exported ${prompts.length} prompts.`);
   };
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 card shadow-pop bg-surface px-3 py-2 flex items-center gap-1.5 flex-wrap justify-center max-w-[94vw] animate-rise">
-      <span className="text-xs font-semibold text-ink px-2 tabular-nums">{ids.length} selected</span>
-      <button className="text-xs text-accent hover:underline px-1" onClick={selectAll}>All {total}</button>
+    <div role="toolbar" aria-label="Actions for selected prompts" className="fixed bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-40 card shadow-pop bg-surface px-3 py-2.5 flex items-center gap-1.5 flex-wrap justify-center max-w-[calc(100vw-1.25rem)] sm:max-w-[94vw] animate-rise">
+      <span role="status" aria-live="polite" className="text-xs font-semibold text-ink px-2 tabular-nums">{ids.length} selected</span>
+      <button type="button" className="text-xs text-accent hover:underline px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded" onClick={selectAll} aria-label={`Select all ${total} matching prompts`}>All {total}</button>
       <div className="w-px h-5 bg-line mx-1" />
-      <Button size="sm" variant="subtle" title="Add to favorites" onClick={async () => { await vault.bulkFavorite(ids, true); done('Added to favorites.'); }}><Star size={14} /></Button>
-      <Button size="sm" variant="subtle" title="Remove from favorites" onClick={async () => { await vault.bulkFavorite(ids, false); done('Removed from favorites.'); }}><StarOff size={14} /></Button>
+      <Button size="sm" variant="subtle" title="Add to favorites" aria-label="Add selected prompts to favorites" onClick={async () => { await vault.bulkFavorite(ids, true); done('Added to favorites.'); }}><Star size={14} aria-hidden="true" /></Button>
+      <Button size="sm" variant="subtle" title="Remove from favorites" aria-label="Remove selected prompts from favorites" onClick={async () => { await vault.bulkFavorite(ids, false); done('Removed from favorites.'); }}><StarOff size={14} aria-hidden="true" /></Button>
       <Dropdown align="left" trigger={<Button size="sm" variant="subtle"><Shapes size={14} />Category</Button>}>
         {close => (<>
           <MenuItem onClick={async () => { close(); await vault.bulkCategory(ids, null); done('Category cleared.'); }}>Uncategorized</MenuItem>
@@ -51,7 +51,7 @@ export function BulkBar({ ids, total, clear, selectAll }: { ids: string[]; total
           await vault.softDelete(ids); clear();
         }
       }}><Trash2 size={14} />Delete</Button>
-      <Button size="sm" variant="subtle" onClick={clear} aria-label="Clear selection"><X size={14} /></Button>
+      <Button size="sm" variant="subtle" onClick={clear} aria-label="Clear selection"><X size={14} aria-hidden="true" /></Button>
     </div>
   );
 }

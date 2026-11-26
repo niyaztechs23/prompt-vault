@@ -41,8 +41,8 @@ export function PromptCard({ p, q = '', snippet, view = 'grid', selected, select
 
   const checkbox = (
     <button aria-label={selected ? 'Deselect prompt' : 'Select prompt'} onClick={e => { e.stopPropagation(); onToggleSelect?.(p.id); }}
-      className={cx('text-accent transition', selectionMode || selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}>
-      {selected ? <CheckSquare size={16} /> : <Square size={16} className="text-muted" />}
+      className={cx('text-accent transition focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded', selectionMode || selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}>
+      {selected ? <CheckSquare size={16} aria-hidden="true" /> : <Square size={16} aria-hidden="true" className="text-muted" />}
     </button>
   );
 
@@ -82,16 +82,17 @@ export function PromptCard({ p, q = '', snippet, view = 'grid', selected, select
 
   const stats = (
     <div className="flex items-center gap-3 text-[11px] text-muted tabular-nums">
-      <span className="flex items-center gap-1" title={`Used ${p.usage_count} times · last ${timeAgo(p.last_used_at)}`}><BarChart3 size={12} />{p.usage_count}×</span>
-      <span className="flex items-center gap-1" title={`Updated ${timeAgo(p.updated_at)}`}><Clock size={12} />{timeAgo(p.updated_at)}</span>
+      <span className="flex items-center gap-1" title={`Used ${p.usage_count} times · last ${timeAgo(p.last_used_at)}`} aria-label={`Used ${p.usage_count} times`}><BarChart3 size={12} aria-hidden="true" />{p.usage_count}×</span>
+      <span className="flex items-center gap-1" title={`Updated ${timeAgo(p.updated_at)}`} aria-label={`Updated ${timeAgo(p.updated_at)}`}><Clock size={12} aria-hidden="true" />{timeAgo(p.updated_at)}</span>
       <span title={`Version ${p.version}`}>v{p.version}</span>
     </div>
   );
 
   return (
     <>
-      <article onClick={() => selectionMode ? onToggleSelect?.(p.id) : ui.openDetail(p.id)}
-        className={cx('card group cursor-pointer transition-all hover:border-accent/40 hover:shadow-card hover:-translate-y-0.5 animate-rise',
+      <article role="button" tabIndex={0} aria-label={`${p.title}. ${selectionMode ? selected ? 'Selected; press Enter to deselect.' : 'Press Enter to select.' : 'Open prompt details.'}`} onClick={() => selectionMode ? onToggleSelect?.(p.id) : ui.openDetail(p.id)}
+        onKeyDown={e => { if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); selectionMode ? onToggleSelect?.(p.id) : ui.openDetail(p.id); }}
+        className={cx('card group cursor-pointer transition-all hover:border-accent/40 hover:shadow-card hover:-translate-y-0.5 animate-rise focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
           selected && 'border-accent/60 ring-2 ring-accent/20', view === 'grid' ? 'p-4 flex flex-col gap-2.5' : 'px-4 py-3 flex items-center gap-3')}
         style={{ animationDelay: `${Math.min(index, 12) * 30}ms` }}>
         {view === 'grid' ? (<>
@@ -109,7 +110,7 @@ export function PromptCard({ p, q = '', snippet, view = 'grid', selected, select
             {stats}
             <button onClick={e => { e.stopPropagation(); void copy(p); }}
               className="flex items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-hover px-2 py-1 rounded-md hover:bg-accent-soft transition">
-              <Copy size={13} />Copy
+              <Copy size={13} aria-hidden="true" />Copy
             </button>
           </div>
         </>) : (<>

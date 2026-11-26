@@ -65,35 +65,36 @@ export function Prompts({ preset }: { preset: keyof typeof PRESETS }) {
 
   const toggle = (id: string) => setSelection(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  if (!vault.ready) return <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-48" />)}</div>;
+  if (!vault.ready) return <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4" aria-label="Loading prompts">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-48" />)}</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="space-y-5 sm:space-y-6">
+      <header className="flex items-start justify-between gap-4 flex-wrap rounded-2xl border border-line bg-surface px-4 py-5 sm:px-6 sm:py-6 shadow-card">
         <div>
-          <h1 className="font-display text-xl font-bold text-ink flex items-center gap-2"><cfg.icon size={20} className="text-accent" />{cfg.title}</h1>
-          <p className="text-sm text-muted mt-0.5">{cfg.desc} <span className="text-ink font-medium tabular-nums">· {hits.length}</span></p>
+          <p className="text-[11px] uppercase tracking-[0.16em] font-semibold text-muted mb-2">Prompt Vault <span aria-hidden="true">/</span> Library</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink flex items-center gap-2.5"><span className="grid place-items-center rounded-xl bg-accent-soft p-2 text-accent"><cfg.icon size={20} aria-hidden="true" /></span>{cfg.title}</h1>
+          <p className="text-sm text-muted mt-2">{cfg.desc} <span className="text-ink font-semibold tabular-nums">· {hits.length} {hits.length === 1 ? 'prompt' : 'prompts'}</span></p>
         </div>
-        <Button variant="primary" onClick={() => ui.openEditor()}><Plus size={15} />New Prompt</Button>
-      </div>
-      <div className="flex gap-1.5 flex-wrap">
+        <Button variant="primary" onClick={() => ui.openEditor()}><Plus size={15} aria-hidden="true" />New Prompt</Button>
+      </header>
+      <nav aria-label="Prompt library shortcuts" className="flex gap-2 overflow-x-auto pb-1">
         {CHIPS.map(c => (
-          <Link key={c.to} to={c.to} className={cx('chip cursor-pointer transition hover:border-accent/40', (c.to === '/prompts' ? preset === 'all' : c.to === '/' + preset) && 'bg-accent-soft text-accent border-accent/40')}>{c.label}</Link>
+          <Link key={c.to} to={c.to} aria-current={(c.to === '/prompts' ? preset === 'all' : c.to === '/' + preset) ? 'page' : undefined} className={cx('chip shrink-0 cursor-pointer transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent', (c.to === '/prompts' ? preset === 'all' : c.to === '/' + preset) && 'bg-accent-soft text-accent border-accent/40')}>{c.label}</Link>
         ))}
-      </div>
+      </nav>
       <FilterBar f={f} set={set} selectionMode={selectionMode} onSelectionMode={v => { setSelectionMode(v); if (!v) setSelection(new Set()); }} />
       {hits.length ? (
-        <div className={f.view === 'grid' ? 'grid sm:grid-cols-2 xl:grid-cols-3 gap-3' : 'space-y-2'}>
+        <section aria-label={`${cfg.title} results`} className={f.view === 'grid' ? 'grid sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4' : 'space-y-2'}>
           {hits.map((h, i) => (
             <PromptCard key={h.prompt.id} p={h.prompt} q={f.q} snippet={h.snippet} view={f.view} index={i}
               selected={selection.has(h.prompt.id)} selectionMode={selectionMode}
               onToggleSelect={id => { setSelectionMode(true); toggle(id); }} />
           ))}
-        </div>
+        </section>
       ) : (
         <EmptyState icon={<cfg.icon size={22} />}
-          title={f.q || f.cat || f.tag || f.platform ? 'No prompts match your filters' : preset === 'all' ? 'Your vault is empty' : `No ${cfg.title.toLowerCase()} yet`}
-          hint={f.q ? 'Try a different search or clear the filters.' : preset === 'favorites' ? 'Star any prompt to find it here.' : preset === 'pinned' ? 'Pin important prompts to keep them at hand.' : preset === 'recent' ? 'Copy a prompt and it will show up here.' : 'Create your first prompt or import a backup.'}
+          title={f.q || f.cat || f.tag || f.platform ? 'No prompts match these filters' : preset === 'all' ? 'Your vault is ready for its first prompt' : `No ${cfg.title.toLowerCase()} yet`}
+          hint={f.q || f.cat || f.tag || f.platform ? 'Try a broader search or clear one or more filters to see matching prompts.' : preset === 'favorites' ? 'Star any prompt to keep it close at hand.' : preset === 'pinned' ? 'Pin important prompts to keep them easy to find.' : preset === 'recent' ? 'Copy a prompt and it will appear here.' : preset === 'most-used' ? 'Prompts will be ranked here as you use them.' : preset === 'untagged' ? 'Everything is tagged. New prompts without tags will appear here.' : preset === 'uncategorized' ? 'Everything has a category. New uncategorized prompts will appear here.' : 'Create a prompt from scratch or import a backup to bring your library in.'}
           action={<div className="flex gap-2"><Button variant="primary" onClick={() => ui.openEditor()}><Plus size={14} />New Prompt</Button><Button onClick={() => ui.setImportOpen(true)}><Upload size={14} />Import</Button></div>} />
       )}
       <BulkBar ids={[...selection]} total={hits.length} clear={() => { setSelection(new Set()); setSelectionMode(false); }}

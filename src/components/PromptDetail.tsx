@@ -86,10 +86,10 @@ export function PromptDetail() {
     <div className="fixed inset-0 z-[70] animate-fade" role="dialog" aria-modal="true" aria-label={`Prompt: ${p.title}`}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeDetail} />
       <aside className="absolute inset-y-0 right-0 w-full sm:w-[600px] bg-surface border-l border-line shadow-pop flex flex-col animate-slidein">
-        <div className="flex items-start gap-2 px-5 py-4 border-b border-line shrink-0">
+        <div className="flex items-start gap-3 px-6 py-5 border-b border-line shrink-0 bg-surface">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display font-semibold text-ink text-lg leading-tight break-words">{p.title}</h2>
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <h2 className="font-display font-semibold text-ink text-xl leading-tight break-words">{p.title}</h2>
+            <div className="flex flex-wrap gap-1.5 mt-3">
               <Badge><span className="w-2 h-2 rounded-full" style={{ background: cat?.color ?? '#827D6A' }} />{cat?.name ?? 'Uncategorized'}</Badge>
               <Badge><span className="w-2 h-2 rounded-full" style={{ background: PLATFORM_COLORS[p.platform] ?? '#827D6A' }} />{p.platform}</Badge>
               <Badge>v{p.version}</Badge>
@@ -99,22 +99,23 @@ export function PromptDetail() {
           </div>
           <IconBtn label="Close panel" onClick={closeDetail}><X size={18} /></IconBtn>
         </div>
-        <div className="flex border-b border-line shrink-0 px-5 gap-4">
+        <div className="flex border-b border-line shrink-0 px-6 gap-5 bg-surface">
           {(['overview', 'history'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={cx('py-2.5 text-sm font-medium border-b-2 -mb-px transition capitalize', tab === t ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink')}>
+              aria-current={tab === t ? 'page' : undefined}
+              className={cx('py-3 text-sm font-medium border-b-2 -mb-px transition capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-t', tab === t ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink')}>
               {t === 'history' ? `History (${versions.length})` : 'Overview'}
             </button>
           ))}
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 bg-surface2/20">
           {tab === 'overview' ? (<>
-            {p.description && <p className="text-sm text-muted leading-relaxed">{p.description}</p>}
+            {p.description && <p className="text-sm text-muted leading-relaxed max-w-prose">{p.description}</p>}
             <div className="relative">
               <div className="absolute top-2 right-2 z-10">
                 <Button size="sm" variant="primary" onClick={() => void copy(p)}><Copy size={13} />Copy</Button>
               </div>
-              <pre className="card p-4 pr-24 font-mono text-[13px] whitespace-pre-wrap break-words text-ink leading-relaxed bg-surface2/50">{p.content}</pre>
+              <pre className="card p-5 pr-24 font-mono text-[13px] whitespace-pre-wrap break-words text-ink leading-[1.75] bg-surface2/70 border-line">{p.content}</pre>
             </div>
             {p.notes && <div><h4 className="label">Notes</h4><p className="text-sm text-muted whitespace-pre-wrap">{p.notes}</p></div>}
             {p.tag_ids.length > 0 && <div><h4 className="label">Tags</h4><div className="flex flex-wrap gap-1.5">{p.tag_ids.map(id => { const t = vault.tags.find(x => x.id === id); return t ? <Badge key={id} className="text-accent">#{t.name}</Badge> : null; })}</div></div>}
@@ -126,15 +127,15 @@ export function PromptDetail() {
                 { icon: <FileText size={13} />, label: 'Created', value: fmtDateTime(p.created_at) },
                 { icon: <Hash size={13} />, label: 'Size', value: `${wordCount(p.content)} words · ${p.content.length} chars` },
               ].map(m => (
-                <div key={m.label} className="card p-2.5 bg-surface2/40">
-                  <div className="text-[10px] uppercase tracking-wide text-muted flex items-center gap-1">{m.icon}{m.label}</div>
-                  <div className="text-xs text-ink mt-1">{m.value}</div>
+                <div key={m.label} className="card p-3 bg-surface2/50 border-line">
+                  <div className="text-[10px] uppercase tracking-[0.12em] text-muted flex items-center gap-1.5">{m.icon}{m.label}</div>
+                  <div className="text-xs text-ink mt-1.5 leading-relaxed">{m.value}</div>
                 </div>
               ))}
             </div>
           </>) : (<>
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted">Every save creates a version. Restoring never deletes history.</p>
+              <p className="text-xs text-muted leading-relaxed">Every save creates a version. Restoring never deletes history.</p>
               <Button size="sm" onClick={() => setCompareOpen(true)} disabled={versions.length < 2}><GitCompare size={13} />Compare</Button>
             </div>
             <ol className="relative border-l border-line ml-2 space-y-3">
@@ -143,7 +144,7 @@ export function PromptDetail() {
                 return (
                   <li key={v.id} className="ml-4 relative">
                     <span className={cx('absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-surface', isCurrent ? 'bg-accent' : 'bg-muted/50')} />
-                    <div className="card p-3 hover:border-accent/30 transition">
+                    <div className="card p-4 hover:border-accent/30 transition">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={cx('text-xs font-bold', isCurrent ? 'text-accent' : 'text-ink')}>v{v.version_number}</span>
                         {isCurrent && <Badge className="text-accent border-accent/30 bg-accent-soft">current</Badge>}
@@ -162,7 +163,7 @@ export function PromptDetail() {
             </ol>
           </>)}
         </div>
-        <div className="px-5 py-3 border-t border-line flex items-center gap-1.5 shrink-0 flex-wrap">
+        <div className="px-6 py-4 border-t border-line flex items-center gap-2 shrink-0 flex-wrap bg-surface shadow-[0_-8px_24px_rgba(0,0,0,0.04)]">
           <Button variant="primary" size="sm" onClick={() => void copy(p)}><Copy size={13} />Copy prompt</Button>
           <Button size="sm" onClick={() => openEditor({ promptId: p.id })}><Pencil size={13} />Edit</Button>
           <IconBtn label={p.is_favorite ? 'Remove favorite' : 'Favorite'} onClick={() => vault.toggleFavorite(p.id)} className={cx(p.is_favorite && 'text-gold')}><Star size={16} fill={p.is_favorite ? 'currentColor' : 'none'} /></IconBtn>
